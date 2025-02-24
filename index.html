@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Violin Tuner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .strings-container {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .string-button {
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 2rem;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .string-button:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .string-button:active {
+            transform: scale(0.95);
+        }
+
+        .playing {
+            background-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        }
+
+        @media (max-width: 500px) {
+            .string-button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Violin Tuner</h1>
+        <div class="strings-container">
+            <button class="string-button" data-note="E5">E</button>
+            <button class="string-button" data-note="A4">A</button>
+            <button class="string-button" data-note="D4">D</button>
+            <button class="string-button" data-note="G3">G</button>
+        </div>
+    </div>
+
+    <script>
+        let synth = null;
+        let isPlaying = false;
+        let currentButton = null;
+
+        async function initAudio() {
+            await Tone.start();
+            synth = new Tone.Synth({
+                oscillator: {
+                    type: "sine"
+                },
+                envelope: {
+                    attack: 0.1,
+                    decay: 0.2,
+                    sustain: 1,
+                    release: 1
+                }
+            }).toDestination();
+        }
+
+        document.querySelectorAll('.string-button').forEach(button => {
+            button.addEventListener('click', async () => {
+                if (!synth) {
+                    await initAudio();
+                }
+
+                const note = button.dataset.note;
+
+                if (isPlaying && currentButton === button) {
+                    synth.triggerRelease();
+                    button.classList.remove('playing');
+                    isPlaying = false;
+                    currentButton = null;
+                } else {
+                    if (isPlaying && currentButton) {
+                        currentButton.classList.remove('playing');
+                        synth.triggerRelease();
+                    }
+
+                    synth.triggerAttack(note);
+                    button.classList.add('playing');
+                    isPlaying = true;
+                    currentButton = button;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <title>Violin Tuner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -62,9 +63,20 @@
             transform: scale(0.95);
         }
 
-        .playing {
-            background-color: #4CAF50;
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        .playing-e {
+            box-shadow: 0 0 30px rgba(255, 223, 0, 0.8), inset 0 0 5px rgba(255, 223, 0, 0.8);
+        }
+
+        .playing-a {
+            box-shadow: 0 0 30px rgba(30, 144, 255, 0.8), inset 0 0 5px rgba(30, 144, 255, 0.8);
+        }
+
+        .playing-d {
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.8), inset 0 0 5px rgba(255, 140, 0, 0.8);
+        }
+
+        .playing-g {
+            box-shadow: 0 0 30px rgba(0, 206, 209, 0.8), inset 0 0 5px rgba(0, 206, 209, 0.8);
         }
 
         @media (max-width: 500px) {
@@ -117,17 +129,17 @@
 
                 if (isPlaying && currentButton === button) {
                     synth.triggerRelease();
-                    button.classList.remove('playing');
+                    button.classList.remove(`playing-${note[0].toLowerCase()}`);
                     isPlaying = false;
                     currentButton = null;
                 } else {
                     if (isPlaying && currentButton) {
-                        currentButton.classList.remove('playing');
+                        currentButton.classList.remove(`playing-${currentButton.dataset.note[0].toLowerCase()}`);
                         synth.triggerRelease();
                     }
 
                     synth.triggerAttack(note);
-                    button.classList.add('playing');
+                    button.classList.add(`playing-${note[0].toLowerCase()}`);
                     isPlaying = true;
                     currentButton = button;
                 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
     <title>Violin Tuner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -16,7 +17,7 @@
             justify-content: center;
             background-color: #1a1a1a;
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Comic Neue', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         .container {
@@ -26,9 +27,11 @@
         }
 
         h1 {
-            margin-bottom: 3rem;
-            font-size: 2.5rem;
-            font-weight: 300;
+            margin-bottom: 4rem;
+            font-size: 3.5rem;
+            font-weight: 400;
+            cursor: pointer;
+            user-select: none;
         }
 
         .strings-container {
@@ -39,15 +42,16 @@
         }
 
         .string-button {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             background-color: #333;
             color: white;
             border: none;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 2rem;
-            font-weight: 300;
+            font-size: 3rem;
+            font-weight: 400;
+            font-family: 'Comic Neue', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -79,8 +83,152 @@
             box-shadow: 0 0 30px rgba(0, 206, 209, 0.8), inset 0 0 5px rgba(0, 206, 209, 0.8);
         }
 
+        .metronome-container {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .bpm-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .bpm-control {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 3rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: transform 0.2s;
+        }
+
+        .bpm-control:hover {
+            transform: scale(1.1);
+        }
+
+        .bpm-value {
+            font-size: 3.5rem;
+            font-weight: 400;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .bpm-slider {
+            width: 100%;
+            margin: 20px 0;
+            -webkit-appearance: none;
+            background: #444;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .bpm-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .bpm-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .notes-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .note-button {
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .note-button:hover {
+            transform: scale(1.05);
+        }
+
+        .note-button.active {
+            box-shadow: 0 0 30px rgba(255, 223, 0, 0.8), inset 0 0 5px rgba(255, 223, 0, 0.8);
+        }
+
+        .note-button[data-beats="1"].active {
+            box-shadow: 0 0 30px rgba(255, 223, 0, 0.8), inset 0 0 5px rgba(255, 223, 0, 0.8);
+        }
+
+        .note-button[data-beats="2"].active {
+            box-shadow: 0 0 30px rgba(30, 144, 255, 0.8), inset 0 0 5px rgba(30, 144, 255, 0.8);
+        }
+
+        .note-button[data-beats="3"].active {
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.8), inset 0 0 5px rgba(255, 140, 0, 0.8);
+        }
+
+        .note-button[data-beats="4"].active {
+            box-shadow: 0 0 30px rgba(0, 206, 209, 0.8), inset 0 0 5px rgba(0, 206, 209, 0.8);
+        }
+
+        .note-button.playing {
+            transform: scale(0.95);
+        }
+
+        .play-button {
+            margin-top: 40px;
+            padding: 20px 50px;
+            font-size: 1.8rem;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .play-button.playing {
+            background-color: #4CAF50;
+        }
+
         @media (max-width: 500px) {
             .string-button {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .bpm-control {
+                font-size: 2rem;
+            }
+
+            .bpm-value {
+                font-size: 2.5rem;
+            }
+
+            .note-button {
                 width: 60px;
                 height: 60px;
                 font-size: 1.5rem;
@@ -90,12 +238,26 @@
 </head>
 <body>
     <div class="container">
-        <h1>Violin Tuner</h1>
+        <h1 id="title">Violin Tuner</h1>
         <div class="strings-container">
             <button class="string-button" data-note="E5">E</button>
             <button class="string-button" data-note="A4">A</button>
             <button class="string-button" data-note="D4">D</button>
             <button class="string-button" data-note="G3">G</button>
+        </div>
+        <div class="metronome-container" id="metronome">
+            <div class="bpm-container">
+                <button class="bpm-control" id="bpm-minus">-</button>
+                <div class="bpm-value" id="bpm-value">120</div>
+                <button class="bpm-control" id="bpm-plus">+</button>
+            </div>
+            <input type="range" class="bpm-slider" id="bpm-slider" min="40" max="208" value="120" step="4">
+            <div class="notes-container">
+                <button class="note-button" data-beats="1">1</button>
+                <button class="note-button" data-beats="2">2</button>
+                <button class="note-button" data-beats="3">3</button>
+                <button class="note-button" data-beats="4">4</button>
+            </div>
         </div>
     </div>
 
@@ -103,6 +265,117 @@
         let synth = null;
         let isPlaying = false;
         let currentButton = null;
+        const title = document.getElementById('title');
+        const metronome = document.getElementById('metronome');
+        let isMetronome = false;
+        let metronomePlaying = false;
+        let currentBeat = 0;
+        let beatsPerBar = 4;
+        let bpm = parseInt(localStorage.getItem('metronomeBPM')) || 60;
+        let metronomeInterval = null;
+        let currentNoteButton = null;
+
+        // Metronome sound
+        const metronomeSynth = new Tone.Synth({
+            oscillator: {
+                type: "sine"
+            },
+            envelope: {
+                attack: 0.001,
+                decay: 0.1,
+                sustain: 0,
+                release: 0.1
+            }
+        }).toDestination();
+
+        // BPM controls
+        const bpmValue = document.getElementById('bpm-value');
+        const bpmSlider = document.getElementById('bpm-slider');
+        const bpmMinus = document.getElementById('bpm-minus');
+        const bpmPlus = document.getElementById('bpm-plus');
+
+        function updateBPM(value) {
+            bpm = value;
+            bpmValue.textContent = value;
+            bpmSlider.value = value;
+            localStorage.setItem('metronomeBPM', value);
+            if (metronomePlaying) {
+                clearInterval(metronomeInterval);
+                startMetronome();
+            }
+        }
+
+        bpmSlider.addEventListener('input', (e) => updateBPM(parseInt(e.target.value)));
+        bpmMinus.addEventListener('click', () => updateBPM(Math.max(40, bpm - 1)));
+        bpmPlus.addEventListener('click', () => updateBPM(Math.min(208, bpm + 1)));
+
+        // Initialize BPM display
+        bpmValue.textContent = bpm;
+        bpmSlider.value = bpm;
+
+        // Note selection and play/stop
+        document.querySelectorAll('.note-button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (currentNoteButton === button) {
+                    // If clicking the same button, toggle play state
+                    if (metronomePlaying) {
+                        stopMetronome();
+                        button.classList.remove('active');
+                    } else {
+                        startMetronome();
+                        button.classList.add('active');
+                    }
+                } else {
+                    // If clicking a different button
+                    if (currentNoteButton) {
+                        currentNoteButton.classList.remove('active');
+                    }
+                    if (metronomePlaying) {
+                        stopMetronome();
+                    }
+                    button.classList.add('active');
+                    currentNoteButton = button;
+                    beatsPerBar = parseInt(button.dataset.beats);
+                    currentBeat = 0;
+                    startMetronome();
+                }
+            });
+        });
+
+        function startMetronome() {
+            metronomePlaying = true;
+            const interval = 60000 / bpm;
+            metronomeInterval = setInterval(() => {
+                currentBeat = (currentBeat % beatsPerBar) + 1;
+                const frequency = currentBeat === 1 ? 880 : 440;
+                metronomeSynth.triggerAttackRelease(frequency, "8n");
+            }, interval);
+        }
+
+        function stopMetronome() {
+            metronomePlaying = false;
+            clearInterval(metronomeInterval);
+        }
+
+        title.addEventListener('dblclick', () => {
+            isMetronome = !isMetronome;
+            title.textContent = isMetronome ? 'Metronome' : 'Violin Tuner';
+            document.querySelector('.strings-container').style.display = isMetronome ? 'none' : 'flex';
+            metronome.style.display = isMetronome ? 'block' : 'none';
+            if (isMetronome) {
+                // Remove automatic button click
+                if (currentNoteButton) {
+                    currentNoteButton.classList.remove('active');
+                    stopMetronome();
+                }
+            } else {
+                stopMetronome();
+                if (currentNoteButton) {
+                    currentNoteButton.classList.remove('active', 'playing');
+                    currentNoteButton = null;
+                }
+            }
+        });
 
         async function initAudio() {
             await Tone.start();

@@ -255,7 +255,7 @@
         <div class="metronome-container" id="metronome">
             <div class="bpm-container">
                 <button class="bpm-control" id="bpm-minus">-</button>
-                <div class="bpm-value" id="bpm-value">120</div>
+                <div class="bpm-value" id="bpm-value" onclick="calculateBPM()">120</div>
                 <button class="bpm-control" id="bpm-plus">+</button>
             </div>
             <input type="range" class="bpm-slider" id="bpm-slider" min="40" max="208" value="120" step="4">
@@ -362,6 +362,21 @@
         function stopMetronome() {
             metronomePlaying = false;
             clearInterval(metronomeInterval);
+        }
+
+        let tapTime = [];
+        function calculateBPM() {
+            tapTime.push(new Date());
+            if (tapTime.length > 6) {
+                tapTime.splice(0, 1);
+            }
+            if (tapTime.length === 6) {
+                const timeDiff = tapTime[5] - tapTime[0];
+                const bpm = (60000 * 6) / timeDiff;
+                if (bpm <= 208 && bpm >= 40) {
+                    updateBPM(Math.round(bpm));
+                }
+            }
         }
 
         title.addEventListener('dblclick', () => {

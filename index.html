@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
-    <title>Violin Tuner</title>
+    <title>Violin&Guitar Tuner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body {
@@ -89,6 +89,14 @@
 
         .playing-g {
             box-shadow: 0 0 30px rgba(0, 206, 209, 0.8), inset 0 0 5px rgba(0, 206, 209, 0.8);
+        }
+
+        .playing-b {
+            box-shadow: 0 0 30px rgba(186, 85, 211, 0.8), inset 0 0 5px rgba(186, 85, 211, 0.8);
+        }
+
+        .strings-container + .strings-container {
+            margin-top: 1.5rem;
         }
 
         .metronome-container {
@@ -245,12 +253,20 @@
 </head>
 <body>
     <div class="container">
-        <h1 id="title">Violin Tuner</h1>
+        <h1 id="title">Violin&Guitar Tuner</h1>
         <div class="strings-container">
             <button class="string-button" data-note="E5">E</button>
             <button class="string-button" data-note="A4">A</button>
             <button class="string-button" data-note="D4">D</button>
             <button class="string-button" data-note="G3">G</button>
+        </div>
+        <div class="strings-container">
+            <button class="string-button" data-note="E2">E</button>
+            <button class="string-button" data-note="A2">A</button>
+            <button class="string-button" data-note="D3">D</button>
+            <button class="string-button" data-note="G3">G</button>
+            <button class="string-button" data-note="B3">B</button>
+            <button class="string-button" data-note="E4">E</button>
         </div>
         <div class="metronome-container" id="metronome">
             <div class="bpm-container">
@@ -382,10 +398,12 @@
         title.addEventListener('dblclick', () => {
             isMetronome = !isMetronome;
             localStorage.setItem('isMetronome', isMetronome);
-            title.textContent = isMetronome ? 'Metronome' : 'Violin Tuner';
-            document.querySelector('.strings-container').style.display = isMetronome ? 'none' : 'flex';
+            title.textContent = isMetronome ? 'Metronome' : 'Violin&Guitar Tuner';
+            document.querySelectorAll('.strings-container').forEach(el => {
+                el.style.display = isMetronome ? 'none' : 'flex';
+            });
             metronome.style.display = isMetronome ? 'block' : 'none';
-            
+
             // Stop any playing sounds when switching modes
             if (isPlaying && currentButton) {
                 synth.triggerRelease();
@@ -410,8 +428,10 @@
         });
 
         // Initialize display based on stored mode
-        title.textContent = isMetronome ? 'Metronome' : 'Violin Tuner';
-        document.querySelector('.strings-container').style.display = isMetronome ? 'none' : 'flex';
+        title.textContent = isMetronome ? 'Metronome' : 'Violin&Guitar Tuner';
+        document.querySelectorAll('.strings-container').forEach(el => {
+            el.style.display = isMetronome ? 'none' : 'flex';
+        });
         metronome.style.display = isMetronome ? 'block' : 'none';
 
         async function initAudio() {

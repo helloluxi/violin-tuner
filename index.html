@@ -260,7 +260,7 @@
             <button class="string-button" data-note="D4">D</button>
             <button class="string-button" data-note="G3">G</button>
         </div>
-        <div class="strings-container">
+        <div class="strings-container guitar-row">
             <button class="string-button" data-note="E2">E</button>
             <button class="string-button" data-note="A2">A</button>
             <button class="string-button" data-note="D3">D</button>
@@ -286,6 +286,20 @@
 
     <script>
         let synth = null;
+        let guitarInterval = null;
+        const GUITAR_REPEAT_MS = 2000;
+        const guitarSampler = new Tone.Sampler({
+            urls: {
+                E2: 'E2.mp3',
+                A2: 'A2.mp3',
+                D3: 'D3.mp3',
+                G3: 'G3.mp3',
+                B3: 'B3.mp3',
+                E4: 'E4.mp3'
+            },
+            baseUrl: 'https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/',
+            release: 1
+        }).toDestination();
         let isPlaying = false;
         let currentButton = null;
         const title = document.getElementById('title');
@@ -404,13 +418,7 @@
             });
             metronome.style.display = isMetronome ? 'block' : 'none';
 
-            // Stop any playing sounds when switching modes
-            if (isPlaying && currentButton) {
-                synth.triggerRelease();
-                currentButton.classList.remove(`playing-${currentButton.dataset.note[0].toLowerCase()}`);
-                isPlaying = false;
-                currentButton = null;
-            }
+            stopCurrent();
             
             if (isMetronome) {
                 // Remove automatic button click
@@ -449,6 +457,20 @@
             }).toDestination();
         }
 
+        function stopCurrent() {
+            if (!currentButton) return;
+            currentButton.classList.remove(`playing-${currentButton.dataset.note[0].toLowerCase()}`);
+            if (guitarInterval !== null) {
+                clearInterval(guitarInterval);
+                guitarInterval = null;
+                guitarSampler.triggerRelease(currentButton.dataset.note);
+            } else {
+                synth.triggerRelease();
+            }
+            isPlaying = false;
+            currentButton = null;
+        }
+
         document.querySelectorAll('.string-button').forEach(button => {
             button.addEventListener('click', async () => {
                 if (!synth) {
@@ -456,23 +478,25 @@
                 }
 
                 const note = button.dataset.note;
+                const isGuitar = button.closest('.guitar-row') !== null;
 
                 if (isPlaying && currentButton === button) {
-                    synth.triggerRelease();
-                    button.classList.remove(`playing-${note[0].toLowerCase()}`);
-                    isPlaying = false;
-                    currentButton = null;
-                } else {
-                    if (isPlaying && currentButton) {
-                        currentButton.classList.remove(`playing-${currentButton.dataset.note[0].toLowerCase()}`);
-                        synth.triggerRelease();
-                    }
-
-                    synth.triggerAttack(note);
-                    button.classList.add(`playing-${note[0].toLowerCase()}`);
-                    isPlaying = true;
-                    currentButton = button;
+                    stopCurrent();
+                    return;
                 }
+                if (isPlaying) {
+                    stopCurrent();
+                }
+
+                button.classList.add(`playing-${note[0].toLowerCase()}`);
+                if (isGuitar) {
+                    guitarSampler.triggerAttack(note);
+                    guitarInterval = setInterval(() => guitarSampler.triggerAttack(note), GUITAR_REPEAT_MS);
+                } else {
+                    synth.triggerAttack(note);
+                }
+                isPlaying = true;
+                currentButton = button;
             });
         });
     </script>

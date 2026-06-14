@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&display=swap" rel="stylesheet">
-    <title>Violin&Guitar Tuner</title>
+    <title>Violin Tuner</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body {
@@ -89,14 +89,6 @@
 
         .playing-g {
             box-shadow: 0 0 30px rgba(0, 206, 209, 0.8), inset 0 0 5px rgba(0, 206, 209, 0.8);
-        }
-
-        .playing-b {
-            box-shadow: 0 0 30px rgba(186, 85, 211, 0.8), inset 0 0 5px rgba(186, 85, 211, 0.8);
-        }
-
-        .strings-container + .strings-container {
-            margin-top: 1.5rem;
         }
 
         .metronome-container {
@@ -183,10 +175,6 @@
             transform: scale(1.05);
         }
 
-        .note-button.active {
-            box-shadow: 0 0 30px rgba(255, 223, 0, 0.8), inset 0 0 5px rgba(255, 223, 0, 0.8);
-        }
-
         .note-button[data-beats="1"].active {
             box-shadow: 0 0 30px rgba(255, 223, 0, 0.8), inset 0 0 5px rgba(255, 223, 0, 0.8);
         }
@@ -205,27 +193,6 @@
 
         .note-button.playing {
             transform: scale(0.95);
-        }
-
-        .play-button {
-            margin-top: 40px;
-            padding: 20px 50px;
-            font-size: 1.8rem;
-            background-color: #333;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .play-button:hover {
-            background-color: #444;
-            transform: scale(1.05);
-        }
-
-        .play-button.playing {
-            background-color: #4CAF50;
         }
 
         @media (max-width: 500px) {
@@ -253,20 +220,12 @@
 </head>
 <body>
     <div class="container">
-        <h1 id="title">Violin&Guitar Tuner</h1>
+        <h1 id="title">Violin Tuner</h1>
         <div class="strings-container">
             <button class="string-button" data-note="E5">E</button>
             <button class="string-button" data-note="A4">A</button>
             <button class="string-button" data-note="D4">D</button>
             <button class="string-button" data-note="G3">G</button>
-        </div>
-        <div class="strings-container guitar-row">
-            <button class="string-button" data-note="E2">E</button>
-            <button class="string-button" data-note="A2">A</button>
-            <button class="string-button" data-note="D3">D</button>
-            <button class="string-button" data-note="G3">G</button>
-            <button class="string-button" data-note="B3">B</button>
-            <button class="string-button" data-note="E4">E</button>
         </div>
         <div class="metronome-container" id="metronome">
             <div class="bpm-container">
@@ -286,20 +245,7 @@
 
     <script>
         let synth = null;
-        let guitarInterval = null;
-        const GUITAR_REPEAT_MS = 2000;
-        const guitarSampler = new Tone.Sampler({
-            urls: {
-                E2: 'E2.mp3',
-                A2: 'A2.mp3',
-                D3: 'D3.mp3',
-                G3: 'G3.mp3',
-                B3: 'B3.mp3',
-                E4: 'E4.mp3'
-            },
-            baseUrl: 'https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/',
-            release: 1
-        }).toDestination();
+        let metronomeSynth = null;
         let isPlaying = false;
         let currentButton = null;
         const title = document.getElementById('title');
@@ -312,20 +258,25 @@
         let metronomeInterval = null;
         let currentNoteButton = null;
 
-        // Metronome sound
-        const metronomeSynth = new Tone.Synth({
-            oscillator: {
-                type: "sine"
-            },
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0,
-                release: 0.1
-            }
-        }).toDestination();
+        // iOS Safari: request playback audio session so sound works in silent mode
+        if (navigator.audioSession) {
+            navigator.audioSession.type = 'playback';
+        }
 
-        // BPM controls
+        async function ensureAudioReady() {
+            await Tone.start();
+            if (!synth) {
+                synth = new Tone.Synth({
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.1, decay: 0.2, sustain: 1, release: 1 }
+                }).toDestination();
+                metronomeSynth = new Tone.Synth({
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+            }
+        }
+
         const bpmValue = document.getElementById('bpm-value');
         const bpmSlider = document.getElementById('bpm-slider');
         const bpmMinus = document.getElementById('bpm-minus');
@@ -346,15 +297,13 @@
         bpmMinus.addEventListener('click', () => updateBPM(Math.max(40, bpm - 1)));
         bpmPlus.addEventListener('click', () => updateBPM(Math.min(208, bpm + 1)));
 
-        // Initialize BPM display
         bpmValue.textContent = bpm;
         bpmSlider.value = bpm;
 
-        // Note selection and play/stop
         document.querySelectorAll('.note-button').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
+                await ensureAudioReady();
                 if (currentNoteButton === button) {
-                    // If clicking the same button, toggle play state
                     if (metronomePlaying) {
                         stopMetronome();
                         button.classList.remove('active');
@@ -363,13 +312,8 @@
                         button.classList.add('active');
                     }
                 } else {
-                    // If clicking a different button
-                    if (currentNoteButton) {
-                        currentNoteButton.classList.remove('active');
-                    }
-                    if (metronomePlaying) {
-                        stopMetronome();
-                    }
+                    if (currentNoteButton) currentNoteButton.classList.remove('active');
+                    if (metronomePlaying) stopMetronome();
                     button.classList.add('active');
                     currentNoteButton = button;
                     beatsPerBar = parseInt(button.dataset.beats);
@@ -397,107 +341,96 @@
         let tapTime = [];
         function calculateBPM() {
             tapTime.push(new Date());
-            if (tapTime.length > 6) {
-                tapTime.splice(0, 1);
-            }
+            if (tapTime.length > 6) tapTime.splice(0, 1);
             if (tapTime.length === 6) {
                 const timeDiff = tapTime[5] - tapTime[0];
-                const bpm = (60000 * 6) / timeDiff;
-                if (bpm <= 208 && bpm >= 40) {
-                    updateBPM(Math.round(bpm));
-                }
+                const newBpm = (60000 * 6) / timeDiff;
+                if (newBpm <= 208 && newBpm >= 40) updateBPM(Math.round(newBpm));
             }
         }
 
-        title.addEventListener('dblclick', () => {
+        function switchMode() {
             isMetronome = !isMetronome;
             localStorage.setItem('isMetronome', isMetronome);
-            title.textContent = isMetronome ? 'Metronome' : 'Violin&Guitar Tuner';
+            title.textContent = isMetronome ? 'Metronome' : 'Violin Tuner';
             document.querySelectorAll('.strings-container').forEach(el => {
                 el.style.display = isMetronome ? 'none' : 'flex';
             });
             metronome.style.display = isMetronome ? 'block' : 'none';
-
             stopCurrent();
-            
-            if (isMetronome) {
-                // Remove automatic button click
-                if (currentNoteButton) {
-                    currentNoteButton.classList.remove('active');
-                    stopMetronome();
-                }
-            } else {
-                stopMetronome();
-                if (currentNoteButton) {
-                    currentNoteButton.classList.remove('active', 'playing');
-                    currentNoteButton = null;
-                }
+            stopMetronome();
+            if (currentNoteButton) {
+                currentNoteButton.classList.remove('active', 'playing');
+                currentNoteButton = null;
             }
-        });
+        }
 
-        // Initialize display based on stored mode
-        title.textContent = isMetronome ? 'Metronome' : 'Violin&Guitar Tuner';
+        title.addEventListener('dblclick', switchMode);
+
+        title.textContent = isMetronome ? 'Metronome' : 'Violin Tuner';
         document.querySelectorAll('.strings-container').forEach(el => {
             el.style.display = isMetronome ? 'none' : 'flex';
         });
         metronome.style.display = isMetronome ? 'block' : 'none';
 
-        async function initAudio() {
-            await Tone.start();
-            synth = new Tone.Synth({
-                oscillator: {
-                    type: "sine"
-                },
-                envelope: {
-                    attack: 0.1,
-                    decay: 0.2,
-                    sustain: 1,
-                    release: 1
-                }
-            }).toDestination();
-        }
-
         function stopCurrent() {
             if (!currentButton) return;
             currentButton.classList.remove(`playing-${currentButton.dataset.note[0].toLowerCase()}`);
-            if (guitarInterval !== null) {
-                clearInterval(guitarInterval);
-                guitarInterval = null;
-                guitarSampler.triggerRelease(currentButton.dataset.note);
-            } else {
-                synth.triggerRelease();
-            }
+            synth.triggerRelease();
             isPlaying = false;
             currentButton = null;
         }
 
         document.querySelectorAll('.string-button').forEach(button => {
             button.addEventListener('click', async () => {
-                if (!synth) {
-                    await initAudio();
-                }
-
+                await ensureAudioReady();
                 const note = button.dataset.note;
-                const isGuitar = button.closest('.guitar-row') !== null;
 
                 if (isPlaying && currentButton === button) {
                     stopCurrent();
                     return;
                 }
-                if (isPlaying) {
-                    stopCurrent();
-                }
+                if (isPlaying) stopCurrent();
 
                 button.classList.add(`playing-${note[0].toLowerCase()}`);
-                if (isGuitar) {
-                    guitarSampler.triggerAttack(note);
-                    guitarInterval = setInterval(() => guitarSampler.triggerAttack(note), GUITAR_REPEAT_MS);
-                } else {
-                    synth.triggerAttack(note);
-                }
+                synth.triggerAttack(note);
                 isPlaying = true;
                 currentButton = button;
             });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                switchMode();
+                return;
+            }
+            if (!isMetronome) {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    stopCurrent();
+                    return;
+                }
+                const keyMap = { 'e': 'E5', 'a': 'A4', 'd': 'D4', 'g': 'G3' };
+                const note = keyMap[e.key.toLowerCase()];
+                if (note) {
+                    Tone.start();
+                    document.querySelector(`.string-button[data-note="${note}"]`).click();
+                }
+            } else {
+                if ('1234'.includes(e.key)) {
+                    Tone.start();
+                    document.querySelector(`.note-button[data-beats="${e.key}"]`).click();
+                } else if (e.key === '-') {
+                    updateBPM(Math.max(40, bpm - 1));
+                } else if (e.key === '+') {
+                    updateBPM(Math.min(208, bpm + 1));
+                } else if (e.key === '[') {
+                    updateBPM(Math.max(40, bpm - 4));
+                } else if (e.key === ']') {
+                    updateBPM(Math.min(208, bpm + 4));
+                }
+            }
         });
     </script>
 </body>
